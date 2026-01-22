@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Send, Sparkles, Heart, Cloud, Zap, Moon, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Layout } from "@/components/layout/Layout";
+import { format } from "date-fns";
 
 const quickEmotions = [
   { label: "I feel anxious", icon: Zap },
@@ -27,7 +28,12 @@ const useAuth = () => {
   
   // For now, check localStorage for a mock auth state (for testing)
   const isAuthenticated = localStorage.getItem("mend_mock_auth") === "true";
-  return { isAuthenticated, user: isAuthenticated ? { id: "mock" } : null };
+  const lastCheckIn = localStorage.getItem("mend_last_checkin");
+  return { 
+    isAuthenticated, 
+    user: isAuthenticated ? { id: "mock" } : null,
+    lastCheckIn: lastCheckIn ? new Date(lastCheckIn) : null
+  };
 };
 
 // Placeholder assistant response - replace with Edge Function call later
@@ -44,7 +50,18 @@ const getAssistantResponse = async (userMessage: string): Promise<string> => {
 
 export default function AICompanion() {
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, lastCheckIn } = useAuth();
+  
+  // Dynamic welcome message based on user state
+  const getWelcomeMessage = () => {
+    if (!isAuthenticated) {
+      return "This is a safe, private space. Take your time.";
+    }
+    if (lastCheckIn) {
+      return `Last time you checked in on ${format(lastCheckIn, "EEEE, MMM d")}. How are things feeling today?`;
+    }
+    return "This is your space to check in today.";
+  };
   
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -70,6 +87,9 @@ export default function AICompanion() {
     // If not authenticated, disable further input after first message
     if (!isAuthenticated) {
       setIsDisabled(true);
+    } else {
+      // Update last check-in for authenticated users
+      localStorage.setItem("mend_last_checkin", new Date().toISOString());
     }
 
     try {
@@ -181,7 +201,7 @@ export default function AICompanion() {
                   transition={{ delay: 0.1 }}
                   className="text-2xl font-serif font-medium text-foreground mb-3"
                 >
-                  Hi, I'm here for you
+                  {isAuthenticated ? "Welcome back." : "Hi, I'm here for you"}
                 </motion.h2>
                 
                 <motion.p
@@ -190,7 +210,7 @@ export default function AICompanion() {
                   transition={{ delay: 0.2 }}
                   className="text-muted-foreground mb-6 leading-relaxed"
                 >
-                  Whatever you're feeling right now, you can share it here. This is a safe, private space. Take your time.
+                  {getWelcomeMessage()}
                 </motion.p>
 
                 {/* Typing Indicator Placeholder */}
