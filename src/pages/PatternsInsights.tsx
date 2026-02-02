@@ -51,18 +51,27 @@ function InsightCard({ pattern, index, isEmotion }: { pattern: PatternCardType; 
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35, delay: index * 0.06 }}
-      className={`rounded-2xl p-5 shadow-card transition-shadow ${
+      whileHover={{ 
+        y: -2, 
+        scale: 1.01,
+        transition: { duration: 0.2, ease: "easeOut" }
+      }}
+      whileTap={{ scale: 0.995 }}
+      className={`rounded-2xl p-5 shadow-card cursor-default transition-shadow duration-200 hover:shadow-hover ${
         isEmotion 
           ? "bg-gradient-to-br from-card to-lilac-50/30 border border-lilac-100/50" 
           : "bg-card"
       }`}
     >
       <div className="flex items-start gap-3.5">
-        <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
-          isEmotion ? "bg-lilac-100/70" : "bg-muted/50"
-        }`}>
-          <Icon className={`w-4 h-4 ${isEmotion ? "text-lilac-600" : "text-muted-foreground"}`} />
-        </div>
+        <motion.div 
+          className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors duration-200 ${
+            isEmotion ? "bg-lilac-100/70" : "bg-muted/50"
+          }`}
+          whileHover={{ scale: 1.05 }}
+        >
+          <Icon className={`w-4 h-4 transition-colors duration-200 ${isEmotion ? "text-lilac-600" : "text-muted-foreground"}`} />
+        </motion.div>
         <div className="flex-1 min-w-0">
           <h3 className="text-[15px] font-serif font-semibold text-foreground mb-1.5">{pattern.title}</h3>
           <p className="text-sm text-foreground/75 leading-snug">{pattern.body}</p>
