@@ -15,6 +15,9 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Layout } from "@/components/layout/Layout";
 import { useAuth } from "@/hooks/useAuth";
+import { usePatternSignals } from "@/hooks/usePatternSignals";
+import { useUserPhase } from "@/hooks/useUserPhase";
+import { getCompanionWelcomeText } from "@/lib/phaseCopy";
 import { streamChat } from "@/lib/streamChat";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -35,6 +38,8 @@ interface ChatMessage {
 export default function AICompanion() {
   const navigate = useNavigate();
   const { isAuthenticated, user } = useAuth();
+  const { data: signalsData } = usePatternSignals();
+  const phase = useUserPhase(signalsData?.signals);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
   const [message, setMessage] = useState("");
@@ -285,12 +290,9 @@ export default function AICompanion() {
     }
   };
 
-  // Welcome message for empty state
+  // Welcome message for empty state (phase-aware)
   const getWelcomeMessage = () => {
-    if (!isAuthenticated) {
-      return "This is a safe, private space. Take your time.";
-    }
-    return "This is your space to check in. How are you feeling?";
+    return getCompanionWelcomeText(phase, isAuthenticated);
   };
 
   return (

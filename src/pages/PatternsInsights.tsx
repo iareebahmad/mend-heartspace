@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Layout } from "@/components/layout/Layout";
 import { Link } from "react-router-dom";
 import { usePatternSignals, PatternCard as PatternCardType, TimelineEntry } from "@/hooks/usePatternSignals";
+import { useUserPhase } from "@/hooks/useUserPhase";
+import { getPatternsEmptyHeading, getPatternsEmptyBody, getStartConversationCTA, getAddCheckInCTA } from "@/lib/phaseCopy";
 import { format } from "date-fns";
 
 // Map pattern types to icons
@@ -149,7 +151,7 @@ function RecentMoments({ timeline }: { timeline: TimelineEntry[] }) {
   );
 }
 
-function CheckInCard() {
+function CheckInCard({ ctaText }: { ctaText: string }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
@@ -164,14 +166,14 @@ function CheckInCard() {
       <Link to="/companion">
         <Button size="sm" variant="ghost" className="shrink-0 text-xs h-7 px-3 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/50">
           <MessageCircle className="w-3.5 h-3.5 mr-1.5" />
-          Add a check-in
+          {ctaText}
         </Button>
       </Link>
     </motion.div>
   );
 }
 
-function EmptyState() {
+function EmptyState({ heading, body, ctaText }: { heading: string; body: string; ctaText: string }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 16 }}
@@ -184,15 +186,15 @@ function EmptyState() {
       </div>
 
       <h2 className="text-xl font-serif font-medium text-foreground mb-2">
-        Your patterns are still forming
+        {heading}
       </h2>
       <p className="text-sm text-muted-foreground leading-relaxed mb-6">
-        MEND is still listening. Patterns show up after a few honest conversations.
+        {body}
       </p>
 
       <Link to="/companion">
         <Button className="gradient-lilac text-primary-foreground border-0 shadow-soft hover:shadow-hover transition-all">
-          Start a conversation
+          {ctaText}
         </Button>
       </Link>
     </motion.div>
@@ -315,7 +317,7 @@ function getDisplayPatterns(patterns: PatternCardType[], signalCount: number): (
   return displayPatterns.slice(0, 4);
 }
 
-function DynamicInsights({ patterns, timeline, signalCount }: { patterns: PatternCardType[]; timeline: TimelineEntry[]; signalCount: number }) {
+function DynamicInsights({ patterns, timeline, signalCount, ctaText }: { patterns: PatternCardType[]; timeline: TimelineEntry[]; signalCount: number; ctaText: string }) {
   const isMobile = useIsMobile();
   
   const displayPatterns = getDisplayPatterns(patterns, signalCount);
@@ -354,7 +356,7 @@ function DynamicInsights({ patterns, timeline, signalCount }: { patterns: Patter
               className="text-sm text-muted-foreground hover:text-foreground border-border/50 hover:border-border"
             >
               <MessageCircle className="w-4 h-4 mr-2" />
-              Add a check-in
+              {ctaText}
             </Button>
           </Link>
         </motion.div>
@@ -367,9 +369,16 @@ function DynamicInsights({ patterns, timeline, signalCount }: { patterns: Patter
 
 export default function PatternsInsights() {
   const { data, isLoading } = usePatternSignals();
+  const phase = useUserPhase(data?.signals);
   
   const signalCount = data?.signals?.length ?? 0;
   const hasEnoughData = signalCount >= 3;
+
+  // Phase-aware copy
+  const emptyHeading = getPatternsEmptyHeading(phase);
+  const emptyBody = getPatternsEmptyBody(phase);
+  const startCTA = getStartConversationCTA(phase);
+  const checkInCTA = getAddCheckInCTA(phase);
 
   return (
     <Layout>
@@ -397,19 +406,20 @@ export default function PatternsInsights() {
 
           {/* Check-in CTA card */}
           <div className="mb-6">
-            <CheckInCard />
+            <CheckInCard ctaText={checkInCTA} />
           </div>
 
           {/* Main content */}
           {isLoading ? (
             <LoadingState />
           ) : !hasEnoughData ? (
-            <EmptyState />
+            <EmptyState heading={emptyHeading} body={emptyBody} ctaText={startCTA} />
           ) : (
             <DynamicInsights 
               patterns={data?.patterns || []} 
               timeline={data?.timeline || []} 
               signalCount={signalCount}
+              ctaText={checkInCTA}
             />
           )}
         </div>
