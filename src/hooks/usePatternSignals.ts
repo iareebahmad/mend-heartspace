@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { getEmotionalWeight, getSoftEmotionLabel, getTimeBucketLabel, type EmotionalWeight } from "@/lib/emotionalWeight";
 
 export interface Signal {
   id: string;
@@ -20,7 +21,10 @@ export interface PatternCard {
   body: string;
 }
 
-// Gentle, non-clinical emotion labels
+// Re-export for backward compatibility
+export { getEmotionalWeight, getSoftEmotionLabel, getTimeBucketLabel, type EmotionalWeight };
+
+// Gentle, non-clinical emotion labels (kept for pattern computations)
 const emotionLabels: Record<string, string> = {
   anxious: "uneasy",
   anxious_like: "uneasy",
@@ -74,7 +78,7 @@ const contextLabels: Record<string, string> = {
   safety: "feeling safe",
 };
 
-// Time bucket labels
+// Time bucket labels (kept for pattern computations)
 const timeBucketLabels: Record<string, string> = {
   morning: "morning",
   afternoon: "afternoon",
@@ -94,7 +98,7 @@ function getContextLabel(context: string): string {
   return contextLabels[normalized] || normalized;
 }
 
-function getTimeBucketLabel(bucket: string): string {
+function getLocalTimeBucketLabel(bucket: string): string {
   const normalized = bucket.toLowerCase().trim();
   return timeBucketLabels[normalized] || normalized;
 }
@@ -183,6 +187,14 @@ export interface TimelineEntry {
   timeBucket: string;
 }
 
+/** Enhanced timeline entry with emotional weight for mood visualization */
+export interface MoodTimelineEntry {
+  date: string;
+  emotion: string;
+  timeBucket: string;
+  weight: EmotionalWeight;
+}
+
 function computeTimeline(signals: Signal[]): TimelineEntry[] {
   return signals
     .filter((s) => s.created_at)
@@ -190,7 +202,20 @@ function computeTimeline(signals: Signal[]): TimelineEntry[] {
     .map((s) => ({
       date: s.created_at!,
       emotion: getEmotionLabel(s.primary_emotion),
+      timeBucket: getLocalTimeBucketLabel(s.time_bucket),
+    }));
+}
+
+/** Compute mood timeline with emotional weight for gentle visualization */
+function computeMoodTimeline(signals: Signal[]): MoodTimelineEntry[] {
+  return signals
+    .filter((s) => s.created_at)
+    .slice(0, 10) // Keep more entries for timeline
+    .map((s) => ({
+      date: s.created_at!,
+      emotion: getSoftEmotionLabel(s.primary_emotion),
       timeBucket: getTimeBucketLabel(s.time_bucket),
+      weight: getEmotionalWeight(s.primary_emotion),
     }));
 }
 
@@ -214,11 +239,13 @@ export function usePatternSignals() {
       const signals = (data || []) as Signal[];
       const patterns = computePatterns(signals);
       const timeline = signals.length >= 5 ? computeTimeline(signals) : [];
+      const moodTimeline = signals.length >= 3 ? computeMoodTimeline(signals) : [];
 
       return {
         signals,
         patterns,
         timeline,
+        moodTimeline,
         hasEnoughData: signals.length >= 3,
       };
     },

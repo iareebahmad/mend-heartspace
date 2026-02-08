@@ -1,14 +1,14 @@
 import { useState } from "react";
 import { motion, AnimatePresence, PanInfo } from "framer-motion";
-import { Heart, Sparkles, MessageCircle, Clock, Loader2, Lightbulb, Calendar, ChevronDown } from "lucide-react";
+import { Heart, Sparkles, MessageCircle, Clock, Loader2, Lightbulb, Calendar } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
 import { Layout } from "@/components/layout/Layout";
 import { Link } from "react-router-dom";
-import { usePatternSignals, PatternCard as PatternCardType, TimelineEntry } from "@/hooks/usePatternSignals";
+import { usePatternSignals, PatternCard as PatternCardType, MoodTimelineEntry } from "@/hooks/usePatternSignals";
 import { useUserPhase } from "@/hooks/useUserPhase";
 import { getPatternsEmptyHeading, getPatternsEmptyBody, getStartConversationCTA, getAddCheckInCTA } from "@/lib/phaseCopy";
-import { format } from "date-fns";
+import { MoodTimeline } from "@/components/patterns/MoodTimeline";
 
 // Map pattern types to icons
 const patternIcons: Record<string, typeof Heart> = {
@@ -104,52 +104,7 @@ function InsightCard({ pattern, index, isEmotion, isLocked }: { pattern: Pattern
   );
 }
 
-function RecentMoments({ timeline }: { timeline: TimelineEntry[] }) {
-  const [expanded, setExpanded] = useState(false);
-  const visibleCount = 4;
-  const hasMore = timeline.length > visibleCount;
-  const visibleItems = expanded ? timeline : timeline.slice(0, visibleCount);
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.35, delay: 0.25 }}
-      className="mt-10"
-    >
-      <h3 className="text-xs font-medium text-muted-foreground/80 uppercase tracking-wider mb-3">Recent moments</h3>
-      <div className="bg-card rounded-xl px-4 py-3 shadow-card relative">
-        <div className="space-y-3">
-          {visibleItems.map((entry, i) => (
-            <div key={i} className="flex items-center gap-2.5 text-[13px]">
-              <span className="text-muted-foreground/70 w-7 shrink-0 font-medium">
-                {format(new Date(entry.date), "EEE")}
-              </span>
-              <span className="text-muted-foreground/40">•</span>
-              <span className="text-foreground/80 capitalize">{entry.emotion}</span>
-              <span className="text-muted-foreground/40">•</span>
-              <span className="text-muted-foreground/60">{entry.timeBucket}</span>
-            </div>
-          ))}
-        </div>
-        
-        {hasMore && !expanded && (
-          <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-card to-transparent pointer-events-none rounded-b-xl" />
-        )}
-        
-        {hasMore && (
-          <button
-            onClick={() => setExpanded(!expanded)}
-            className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors mt-3 pt-2 border-t border-border/50"
-          >
-            <ChevronDown className={`w-3.5 h-3.5 transition-transform ${expanded ? "rotate-180" : ""}`} />
-            {expanded ? "Show less" : "View more"}
-          </button>
-        )}
-      </div>
-    </motion.div>
-  );
-}
+// RecentMoments replaced by MoodTimeline component
 
 function CheckInCard({ ctaText }: { ctaText: string }) {
   return (
@@ -317,7 +272,7 @@ function getDisplayPatterns(patterns: PatternCardType[], signalCount: number): (
   return displayPatterns.slice(0, 4);
 }
 
-function DynamicInsights({ patterns, timeline, signalCount, ctaText }: { patterns: PatternCardType[]; timeline: TimelineEntry[]; signalCount: number; ctaText: string }) {
+function DynamicInsights({ patterns, moodTimeline, signalCount, ctaText }: { patterns: PatternCardType[]; moodTimeline: MoodTimelineEntry[]; signalCount: number; ctaText: string }) {
   const isMobile = useIsMobile();
   
   const displayPatterns = getDisplayPatterns(patterns, signalCount);
@@ -362,7 +317,8 @@ function DynamicInsights({ patterns, timeline, signalCount, ctaText }: { pattern
         </motion.div>
       )}
 
-      {timeline.length >= 5 && <RecentMoments timeline={timeline} />}
+      {/* Mood Pattern Timeline */}
+      {moodTimeline.length >= 3 && <MoodTimeline entries={moodTimeline} />}
     </>
   );
 }
@@ -417,7 +373,7 @@ export default function PatternsInsights() {
           ) : (
             <DynamicInsights 
               patterns={data?.patterns || []} 
-              timeline={data?.timeline || []} 
+              moodTimeline={data?.moodTimeline || []} 
               signalCount={signalCount}
               ctaText={checkInCTA}
             />
