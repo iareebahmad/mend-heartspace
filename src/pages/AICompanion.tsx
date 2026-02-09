@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect, useRef, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Send, Sparkles, Heart, Cloud, Moon, Lock, RotateCcw } from "lucide-react";
@@ -21,6 +21,7 @@ import { getCompanionWelcomeText } from "@/lib/phaseCopy";
 import { streamChat } from "@/lib/streamChat";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { getTimeDivider } from "@/lib/conversationDividers";
 
 const gentlePrompts = [
   { label: "Reflect on today", icon: Sparkles },
@@ -33,6 +34,7 @@ interface ChatMessage {
   id: string;
   role: "user" | "assistant";
   content: string;
+  created_at?: string | null;
 }
 
 export default function AICompanion() {
@@ -78,6 +80,7 @@ export default function AICompanion() {
             id: msg.id,
             role: msg.role as "user" | "assistant",
             content: msg.content,
+            created_at: msg.created_at,
           })));
         }
       } catch (err) {
@@ -295,6 +298,19 @@ export default function AICompanion() {
     return getCompanionWelcomeText(phase, isAuthenticated);
   };
 
+  // Compute time dividers between messages
+  const timeDividers = useMemo(() => {
+    const dividers = new Map<string, string>();
+    for (let i = 1; i < messages.length; i++) {
+      const label = getTimeDivider(
+        messages[i - 1].created_at ?? null,
+        messages[i].created_at ?? null
+      );
+      if (label) dividers.set(messages[i].id, label);
+    }
+    return dividers;
+  }, [messages]);
+
   return (
     <Layout>
       <div className="min-h-[calc(100vh-4rem)] flex flex-col lg:flex-row">
@@ -445,32 +461,47 @@ export default function AICompanion() {
               <div className="max-w-2xl mx-auto space-y-4">
                 <AnimatePresence mode="popLayout">
                   {messages.map((msg) => (
-                    <motion.div
-                      key={msg.id}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -20 }}
-                      transition={{ duration: 0.3 }}
-                      className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
-                    >
-                      <div
-                        className={`max-w-[80%] px-4 py-3 rounded-2xl ${
-                          msg.role === "user"
-                            ? "bg-primary text-primary-foreground rounded-br-md"
-                            : "bg-card shadow-soft border border-border rounded-bl-md"
-                        }`}
+                    <div key={msg.id}>
+                      {/* Time divider */}
+                      {timeDividers.has(msg.id) && (
+                        <motion.div
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          className="flex items-center gap-3 py-3"
+                        >
+                          <div className="flex-1 h-px bg-border/50" />
+                          <span className="text-xs text-muted-foreground/60 font-medium italic">
+                            {timeDividers.get(msg.id)}
+                          </span>
+                          <div className="flex-1 h-px bg-border/50" />
+                        </motion.div>
+                      )}
+                      <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -20 }}
+                        transition={{ duration: 0.3 }}
+                        className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
                       >
-                        {msg.role === "assistant" && (
-                          <div className="flex items-center gap-2 mb-2">
-                            <div className="w-6 h-6 rounded-lg gradient-lilac flex items-center justify-center">
-                              <Sparkles className="w-3 h-3 text-primary-foreground" />
+                        <div
+                          className={`max-w-[80%] px-4 py-3 rounded-2xl ${
+                            msg.role === "user"
+                              ? "bg-primary text-primary-foreground rounded-br-md"
+                              : "bg-card shadow-soft border border-border rounded-bl-md"
+                          }`}
+                        >
+                          {msg.role === "assistant" && (
+                            <div className="flex items-center gap-2 mb-2">
+                              <div className="w-6 h-6 rounded-lg gradient-lilac flex items-center justify-center">
+                                <Sparkles className="w-3 h-3 text-primary-foreground" />
+                              </div>
+                              <span className="text-xs font-medium text-muted-foreground">MEND</span>
                             </div>
-                            <span className="text-xs font-medium text-muted-foreground">MEND</span>
-                          </div>
-                        )}
-                        <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.content}</p>
-                      </div>
-                    </motion.div>
+                          )}
+                          <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.content}</p>
+                        </div>
+                      </motion.div>
+                    </div>
                   ))}
                 </AnimatePresence>
 
