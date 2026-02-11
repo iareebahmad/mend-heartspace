@@ -24,7 +24,7 @@ const protectedNavLinks: NavLink[] = [
   { name: "Companion", path: "/companion", icon: MessageCircle },
   { name: "Journal", path: "/journal", icon: BookOpen },
   { name: "Patterns", path: "/patterns", icon: TrendingUp },
-  { name: "Deepen", path: "/sessions", icon: Clock },
+  { name: "Deepen Your Reflection", path: "/sessions", icon: Clock },
 ];
 
 export function Navbar() {
