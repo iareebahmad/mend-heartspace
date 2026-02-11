@@ -18,35 +18,40 @@ export function ExpertCard({ name, specialty, rating, sessionPrice, imageUrl, de
       whileInView={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay }}
       viewport={{ once: true }}
-      whileHover={{ y: -4 }}
-      whileTap={{ scale: 0.98 }}
-      className="bg-card rounded-2xl p-5 shadow-card hover:shadow-hover transition-all duration-300 cursor-pointer"
+      whileHover={{ y: -3 }}
+      className="bg-card rounded-2xl p-6 shadow-card hover:shadow-hover transition-all duration-300"
     >
       <div className="flex items-start gap-4">
-        <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-lilac-200 to-mint-200 flex items-center justify-center text-lg font-medium text-foreground">
+        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-lilac-200 to-mint-200 flex items-center justify-center text-base font-medium text-foreground shrink-0">
           {name.charAt(0)}
         </div>
         <div className="flex-1 min-w-0">
           <h4 className="font-medium text-foreground truncate">{name}</h4>
-          <p className="text-sm text-muted-foreground">{specialty}</p>
-          <div className="flex items-center gap-1 mt-1">
-            <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
-            <span className="text-xs text-muted-foreground">{rating}</span>
+          <p className="text-sm text-muted-foreground mt-0.5">{specialty}</p>
+          <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
+            <span className="flex items-center gap-1">
+              <Star className="w-3 h-3 text-amber-400 fill-amber-400" />
+              {rating}
+            </span>
+            <span className="flex items-center gap-1">
+              <Clock className="w-3 h-3" />
+              20 min
+            </span>
           </div>
         </div>
       </div>
-      
-      <div className="mt-4 pt-4 border-t border-border/50 flex items-center justify-between">
-        <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-          <Clock className="w-4 h-4" />
-          <span>20 min</span>
-        </div>
-        <span className="text-sm font-medium text-foreground">{sessionPrice}</span>
+
+      <div className="mt-5 flex items-center justify-between gap-3">
+        <Button
+          className="flex-1 gradient-lilac text-primary-foreground border-0 shadow-soft hover:shadow-hover transition-all text-sm"
+          size="sm"
+        >
+          Begin Conversation
+        </Button>
+        <span className="text-xs text-muted-foreground/70 whitespace-nowrap">
+          From {sessionPrice}
+        </span>
       </div>
-      
-      <Button className="w-full mt-4 gradient-lilac text-primary-foreground border-0 shadow-soft hover:shadow-hover transition-all">
-        Book Session
-      </Button>
     </motion.div>
   );
 }
