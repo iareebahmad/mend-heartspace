@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence, PanInfo } from "framer-motion";
 import { Heart, Sparkles, MessageCircle, Clock, Loader2, Lightbulb, Calendar } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -9,6 +9,10 @@ import { usePatternSignals, PatternCard as PatternCardType, MoodTimelineEntry } 
 import { useUserPhase } from "@/hooks/useUserPhase";
 import { getPatternsEmptyHeading, getPatternsEmptyBody, getStartConversationCTA, getAddCheckInCTA } from "@/lib/phaseCopy";
 import { MoodTimeline } from "@/components/patterns/MoodTimeline";
+import { BrainVisualization } from "@/components/patterns/BrainVisualization";
+import { InsightCards } from "@/components/patterns/InsightCards";
+import { computePatternSnapshot, type PatternSnapshot } from "@/lib/patternSnapshot";
+import { useAuth } from "@/hooks/useAuth";
 
 // Map pattern types to icons
 const patternIcons: Record<string, typeof Heart> = {
@@ -325,16 +329,31 @@ function DynamicInsights({ patterns, moodTimeline, signalCount, ctaText }: { pat
 
 export default function PatternsInsights() {
   const { data, isLoading } = usePatternSignals();
+  const { user } = useAuth();
   const phase = useUserPhase(data?.signals);
+  const [snapshot, setSnapshot] = useState<PatternSnapshot | null>(null);
+  const [snapshotLoading, setSnapshotLoading] = useState(false);
   
   const signalCount = data?.signals?.length ?? 0;
   const hasEnoughData = signalCount >= 3;
+
+  // Compute snapshot when user is available
+  useEffect(() => {
+    if (!user?.id) return;
+    setSnapshotLoading(true);
+    computePatternSnapshot(user.id)
+      .then(setSnapshot)
+      .catch(() => {})
+      .finally(() => setSnapshotLoading(false));
+  }, [user?.id, data?.signals]);
 
   // Phase-aware copy
   const emptyHeading = getPatternsEmptyHeading(phase);
   const emptyBody = getPatternsEmptyBody(phase);
   const startCTA = getStartConversationCTA(phase);
   const checkInCTA = getAddCheckInCTA(phase);
+
+  const snapshotHasData = snapshot && snapshot.signalCount >= 3;
 
   return (
     <Layout>
@@ -357,6 +376,9 @@ export default function PatternsInsights() {
               <p className="text-sm text-muted-foreground/70">
                 Small patterns, over time. Nothing rushed.
               </p>
+              <p className="text-[11px] text-muted-foreground/40 mt-1">
+                Updated from your recent reflections.
+              </p>
             </div>
           </motion.header>
 
@@ -366,17 +388,56 @@ export default function PatternsInsights() {
           </div>
 
           {/* Main content */}
-          {isLoading ? (
+          {isLoading || snapshotLoading ? (
             <LoadingState />
           ) : !hasEnoughData ? (
-            <EmptyState heading={emptyHeading} body={emptyBody} ctaText={startCTA} />
+            <div className="space-y-10">
+              {/* Minimal brain for empty state */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.6 }}
+              >
+                <BrainVisualization
+                  baselineState="calm"
+                  highlightCluster={0}
+                  isEmpty
+                />
+              </motion.div>
+              <EmptyState heading={emptyHeading} body={emptyBody} ctaText={startCTA} />
+            </div>
           ) : (
-            <DynamicInsights 
-              patterns={data?.patterns || []} 
-              moodTimeline={data?.moodTimeline || []} 
-              signalCount={signalCount}
-              ctaText={checkInCTA}
-            />
+            <div className="space-y-10">
+              {/* Brain Activity Visualization */}
+              {snapshotHasData && (
+                <>
+                  <motion.div
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5 }}
+                  >
+                    <p className="text-[11px] text-muted-foreground/40 tracking-wide mb-4 text-center">
+                      brain activity
+                    </p>
+                    <BrainVisualization
+                      baselineState={snapshot!.baselineState}
+                      highlightCluster={0}
+                    />
+                  </motion.div>
+
+                  {/* 3 Insight Cards */}
+                  <InsightCards snapshot={snapshot!} />
+                </>
+              )}
+
+              {/* Existing pattern cards & mood timeline */}
+              <DynamicInsights 
+                patterns={data?.patterns || []} 
+                moodTimeline={data?.moodTimeline || []} 
+                signalCount={signalCount}
+                ctaText={checkInCTA}
+              />
+            </div>
           )}
         </div>
       </div>

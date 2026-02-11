@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect, useRef, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, Sparkles, Heart, Cloud, Moon, Lock, RotateCcw } from "lucide-react";
+import { Send, Sparkles, Heart, Cloud, Moon, Lock, RotateCcw, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -43,6 +43,7 @@ export default function AICompanion() {
   const { data: signalsData } = usePatternSignals();
   const phase = useUserPhase(signalsData?.signals);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -51,11 +52,39 @@ export default function AICompanion() {
   const [showRedirectMessage, setShowRedirectMessage] = useState(false);
   const [isDisabled, setIsDisabled] = useState(false);
   const [showClearDialog, setShowClearDialog] = useState(false);
+  const [isNearBottom, setIsNearBottom] = useState(true);
+  const [hasInitiallyScrolled, setHasInitiallyScrolled] = useState(false);
 
-  // Scroll to bottom when messages change
+  const scrollToBottom = useCallback((behavior: ScrollBehavior = "smooth") => {
+    messagesEndRef.current?.scrollIntoView({ behavior });
+  }, []);
+
+  // Track scroll position to decide auto-scroll
+  const handleScroll = useCallback(() => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+    const threshold = 120;
+    const nearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < threshold;
+    setIsNearBottom(nearBottom);
+  }, []);
+
+  // Initial scroll to bottom when history loads
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+    if (!isFetchingHistory && messages.length > 0 && !hasInitiallyScrolled) {
+      // Use requestAnimationFrame to ensure DOM has rendered
+      requestAnimationFrame(() => {
+        scrollToBottom("auto");
+        setHasInitiallyScrolled(true);
+      });
+    }
+  }, [isFetchingHistory, messages.length, hasInitiallyScrolled, scrollToBottom]);
+
+  // Auto-scroll on new messages only if near bottom
+  useEffect(() => {
+    if (hasInitiallyScrolled && isNearBottom) {
+      scrollToBottom("smooth");
+    }
+  }, [messages, hasInitiallyScrolled, isNearBottom, scrollToBottom]);
 
   // Fetch chat history on mount for authenticated users
   useEffect(() => {
@@ -313,7 +342,7 @@ export default function AICompanion() {
 
   return (
     <Layout>
-      <div className="min-h-[calc(100vh-4rem)] flex flex-col lg:flex-row">
+      <div className="h-[calc(100vh-4rem)] flex flex-col lg:flex-row">
         {/* Sidebar - Gentle Prompts */}
         <aside className="w-full lg:w-72 bg-muted/30 border-b lg:border-b-0 lg:border-r border-border p-4 lg:p-6">
           {/* Clear conversation button */}
@@ -398,9 +427,9 @@ export default function AICompanion() {
         </aside>
 
         {/* Main Chat Area */}
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col min-h-0">
           {/* Chat Messages */}
-          <div className="flex-1 p-6 lg:p-8 overflow-y-auto">
+          <div ref={scrollContainerRef} onScroll={handleScroll} className="flex-1 p-6 lg:p-8 overflow-y-auto relative">
             {isFetchingHistory ? (
               /* Loading state while fetching history */
               <div className="h-full flex flex-col items-center justify-center">
@@ -577,6 +606,22 @@ export default function AICompanion() {
                 <div ref={messagesEndRef} />
               </div>
             )}
+
+            {/* Jump to latest button */}
+            <AnimatePresence>
+              {!isNearBottom && messages.length > 0 && (
+                <motion.button
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 10 }}
+                  onClick={() => scrollToBottom("smooth")}
+                  className="sticky bottom-4 left-1/2 -translate-x-1/2 mx-auto flex items-center gap-1.5 px-4 py-2 bg-card/90 backdrop-blur-sm border border-border rounded-full shadow-soft text-sm text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <ChevronDown className="w-4 h-4" />
+                  Jump to latest
+                </motion.button>
+              )}
+            </AnimatePresence>
           </div>
 
           {/* Safety Disclaimer */}
