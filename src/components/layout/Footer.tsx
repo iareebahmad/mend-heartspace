@@ -26,7 +26,7 @@ export function Footer() {
               <li><Link to="/how-mend-helps" className="text-sm text-muted-foreground hover:text-foreground transition-colors">How MEND Helps</Link></li>
               <li><Link to="/companion" className="text-sm text-muted-foreground hover:text-foreground transition-colors">AI Companion</Link></li>
               <li><Link to="/patterns" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Patterns & Insights</Link></li>
-              <li><Link to="/sessions" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Micro-Sessions</Link></li>
+              <li><Link to="/sessions" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Deepen Your Reflection</Link></li>
             </ul>
           </div>
 
