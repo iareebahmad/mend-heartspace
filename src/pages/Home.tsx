@@ -20,7 +20,7 @@ export default function Home() {
   return (
     <Layout>
       {/* ─── SECTION 1 — Hero ─── */}
-      <section className="relative min-h-[85vh] flex items-center overflow-hidden gradient-hero">
+      <section className="relative min-h-[85vh] flex items-center pt-[3vh] overflow-hidden gradient-hero">
         {/* Radial atmospheric field */}
         <div className="absolute inset-0 pointer-events-none">
           <motion.div
@@ -41,21 +41,21 @@ export default function Home() {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="max-w-2xl mx-auto text-center">
             <Reveal>
-              <h1 className="text-4xl md:text-5xl lg:text-[3.4rem] font-serif font-medium text-foreground leading-snug text-balance">
+              <h1 className="text-4xl md:text-5xl lg:text-[3.4rem] font-serif font-semibold text-foreground leading-[1.18] tracking-[-0.01em] text-balance">
                 Some thoughts don't need fixing.
                 <br className="hidden sm:block" />
                 They need understanding.
               </h1>
             </Reveal>
             <Reveal delay={0.15}>
-              <p className="mt-6 text-lg md:text-xl text-muted-foreground leading-relaxed text-balance max-w-xl mx-auto">
+              <p className="mt-6 text-lg md:text-xl text-foreground/60 leading-relaxed text-balance max-w-xl mx-auto">
                 A private space to reflect, notice patterns, and make sense of what you're carrying.
               </p>
             </Reveal>
             <Reveal delay={0.3}>
-              <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
+              <div className="mt-14 flex flex-col sm:flex-row items-center justify-center gap-4">
                 <Link to="/companion">
-                  <Button size="lg" className="gradient-lilac text-primary-foreground border-0 shadow-soft hover:shadow-hover transition-all duration-300 px-8">
+                  <Button size="lg" className="gradient-lilac text-primary-foreground border-0 transition-all duration-300 px-8" style={{ textShadow: "0 1px 2px hsl(270 40% 20% / 0.15)", boxShadow: "var(--shadow-soft), 0 2px 8px hsl(270 35% 55% / 0.18)" }}>
                     Begin Reflecting
                   </Button>
                 </Link>
