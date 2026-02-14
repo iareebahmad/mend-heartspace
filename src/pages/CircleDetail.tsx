@@ -21,6 +21,7 @@ interface Circle {
   id: string;
   name: string;
   description: string | null;
+  support_prompts: string[] | null;
 }
 
 export default function CircleDetail() {
@@ -34,14 +35,21 @@ export default function CircleDetail() {
   const fetchData = async () => {
     if (!circleId) return;
     const [circleRes, postsRes] = await Promise.all([
-      supabase.from("circles").select("id, name, description").eq("id", circleId).maybeSingle(),
+      supabase.from("circles").select("id, name, description, support_prompts").eq("id", circleId).maybeSingle(),
       supabase
         .from("circle_posts")
         .select("id, title, body, alias, support_type, created_at")
         .eq("circle_id", circleId)
         .order("created_at", { ascending: false }),
     ]);
-    setCircle(circleRes.data);
+    if (circleRes.data) {
+      setCircle({
+        ...circleRes.data,
+        support_prompts: Array.isArray(circleRes.data.support_prompts)
+          ? (circleRes.data.support_prompts as string[])
+          : null,
+      });
+    }
     setPosts(postsRes.data ?? []);
     setLoading(false);
   };
@@ -50,11 +58,7 @@ export default function CircleDetail() {
     fetchData();
   }, [circleId]);
 
-  const supportTypeLabel: Record<string, string> = {
-    vent: "Venting",
-    perspective: "Seeking perspective",
-    ideas: "Looking for ideas",
-  };
+  /* support_type is now stored as the full prompt string, displayed directly */
 
   if (!loading && !circle) {
     return (
@@ -130,9 +134,9 @@ export default function CircleDetail() {
                     {post.body}
                   </p>
                   <div className="flex items-center gap-3 text-xs text-muted-foreground/60">
-                    {post.support_type && supportTypeLabel[post.support_type] && (
+                    {post.support_type && (
                       <span className="px-2.5 py-1 rounded-full bg-secondary/60 text-secondary-foreground/70">
-                        {supportTypeLabel[post.support_type]}
+                        {post.support_type}
                       </span>
                     )}
                     <span>{formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}</span>
@@ -150,6 +154,7 @@ export default function CircleDetail() {
           onOpenChange={setShowCreate}
           circleId={circleId}
           onCreated={fetchData}
+          supportPrompts={circle?.support_prompts ?? undefined}
         />
       )}
     </Layout>

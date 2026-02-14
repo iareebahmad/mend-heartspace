@@ -13,10 +13,10 @@ import { useAuth } from "@/hooks/useAuth";
 import { generateAlias } from "@/lib/aliasGenerator";
 import { toast } from "sonner";
 
-const supportTypes = [
-  { value: "vent", label: "I need to vent" },
-  { value: "perspective", label: "I would like perspective" },
-  { value: "ideas", label: "I am looking for ideas that helped others" },
+const fallbackPrompts = [
+  "I just need to share this",
+  "I would like another perspective",
+  "I would like to hear what helped others",
 ];
 
 interface Props {
@@ -24,14 +24,17 @@ interface Props {
   onOpenChange: (open: boolean) => void;
   circleId: string;
   onCreated: () => void;
+  supportPrompts?: string[];
 }
 
-export default function CreatePostDialog({ open, onOpenChange, circleId, onCreated }: Props) {
+export default function CreatePostDialog({ open, onOpenChange, circleId, onCreated, supportPrompts }: Props) {
   const { user } = useAuth();
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [supportType, setSupportType] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+
+  const prompts = supportPrompts && supportPrompts.length > 0 ? supportPrompts : fallbackPrompts;
 
   const handleSubmit = async () => {
     if (!title.trim() || !body.trim() || !user) return;
@@ -82,20 +85,20 @@ export default function CreatePostDialog({ open, onOpenChange, circleId, onCreat
 
           {/* Support type */}
           <div className="space-y-2">
-            <p className="text-sm text-muted-foreground">What kind of support are you looking for?</p>
+            <p className="text-sm text-muted-foreground">What feels closest to what you need right now?</p>
             <div className="flex flex-wrap gap-2">
-              {supportTypes.map((st) => (
+              {prompts.map((prompt) => (
                 <button
-                  key={st.value}
+                  key={prompt}
                   type="button"
-                  onClick={() => setSupportType(supportType === st.value ? null : st.value)}
+                  onClick={() => setSupportType(supportType === prompt ? null : prompt)}
                   className={`text-sm px-3.5 py-2 rounded-full border transition-all duration-200 tap-scale-sm ${
-                    supportType === st.value
+                    supportType === prompt
                       ? "border-primary bg-primary/10 text-foreground"
                       : "border-border/60 text-muted-foreground hover:border-primary/30"
                   }`}
                 >
-                  {st.label}
+                  {prompt}
                 </button>
               ))}
             </div>
