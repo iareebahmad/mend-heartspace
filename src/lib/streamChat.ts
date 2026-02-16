@@ -2,6 +2,10 @@ type Message = { role: "user" | "assistant"; content: string };
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/mend_chat`;
 
+export interface StreamChatResult {
+  communicationBucket: string | null;
+}
+
 export async function streamChat({
   messages,
   onDelta,
@@ -12,7 +16,7 @@ export async function streamChat({
 }: {
   messages: Message[];
   onDelta: (deltaText: string) => void;
-  onDone: () => void;
+  onDone: (result: StreamChatResult) => void;
   onError?: (error: string) => void;
   companionMode?: string;
   userState?: any;
@@ -30,17 +34,20 @@ export async function streamChat({
     }),
   });
 
+  // Read bucket header before consuming body
+  const communicationBucket = resp.headers.get("X-Communication-Bucket");
+
   // Handle error responses
   if (!resp.ok) {
     const errorData = await resp.json().catch(() => ({ error: "Connection failed" }));
     onError?.(errorData.error || "Something went wrong");
-    onDone();
+    onDone({ communicationBucket });
     return;
   }
 
   if (!resp.body) {
     onError?.("Failed to start stream");
-    onDone();
+    onDone({ communicationBucket });
     return;
   }
 
@@ -98,5 +105,5 @@ export async function streamChat({
     }
   }
 
-  onDone();
+  onDone({ communicationBucket });
 }

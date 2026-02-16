@@ -105,22 +105,28 @@ export type Database = {
       }
       mend_messages: {
         Row: {
+          communication_bucket: string | null
           content: string
           created_at: string | null
+          experience_mode: string | null
           id: string
           role: string
           user_id: string
         }
         Insert: {
+          communication_bucket?: string | null
           content: string
           created_at?: string | null
+          experience_mode?: string | null
           id?: string
           role: string
           user_id: string
         }
         Update: {
+          communication_bucket?: string | null
           content?: string
           created_at?: string | null
+          experience_mode?: string | null
           id?: string
           role?: string
           user_id?: string
