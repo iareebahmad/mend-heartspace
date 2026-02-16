@@ -186,7 +186,8 @@ export default function AICompanion() {
               return [...prev, { id: assistantId, role: "assistant", content: assistantContent }];
             });
           },
-          onDone: () => {
+          onDone: (result) => {
+            console.log("[MEND turn]", { experience_mode: mode, communication_bucket: result.communicationBucket });
             setIsLoading(false);
             setTimeout(() => setShowRedirectMessage(true), 800);
           },
@@ -214,6 +215,7 @@ export default function AICompanion() {
           user_id: user!.id,
           role: "user",
           content: trimmedContent,
+          experience_mode: mode,
         })
         .select()
         .single();
@@ -254,13 +256,17 @@ export default function AICompanion() {
             return [...prev, { id: tempAssistantId, role: "assistant", content: assistantContent }];
           });
         },
-        onDone: async () => {
+        onDone: async (result) => {
+          console.log("[MEND turn]", { experience_mode: mode, communication_bucket: result.communicationBucket });
+
           const { data: assistantMsgData, error: assistantMsgError } = await supabase
             .from("mend_messages")
             .insert({
               user_id: user!.id,
               role: "assistant",
               content: assistantContent,
+              experience_mode: mode,
+              communication_bucket: result.communicationBucket,
             })
             .select()
             .single();
