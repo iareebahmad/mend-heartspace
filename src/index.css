@@ -194,3 +194,11 @@
   50% { transform: scale(1.02); }
   100% { transform: scale(1); }
 }
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
