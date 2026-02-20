@@ -374,94 +374,30 @@ export default function AICompanion() {
 
   return (
   <Layout hideFooter fullScreen>
-      <div className="h-full min-h-0 flex flex-col lg:flex-row">
-        {/* Sidebar - Gentle Prompts */}
-        <aside className="w-full lg:w-72 bg-muted/30 border-b lg:border-b-0 lg:border-r border-border p-4 lg:p-6">
-          <AnimatePresence>
-            {messages.length > 0 && (
-              <motion.button
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                onClick={() => setShowClearDialog(true)}
-                disabled={isLoading}
-                className="w-full flex items-center justify-center gap-2 px-3 py-2 mb-4 text-sm text-muted-foreground hover:text-foreground bg-card/50 hover:bg-card rounded-lg border border-border/50 transition-colors active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+      <div className="h-full min-h-0 flex flex-col">
+        <AlertDialog open={showClearDialog} onOpenChange={setShowClearDialog}>
+          <AlertDialogContent className="max-w-sm rounded-2xl">
+            <AlertDialogHeader>
+              <AlertDialogTitle className="font-serif">Start fresh?</AlertDialogTitle>
+              <AlertDialogDescription className="text-muted-foreground">
+                This will clear your conversation history. Your patterns and insights will remain.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter className="gap-2 sm:gap-0">
+              <AlertDialogCancel className="rounded-xl">Keep talking</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleClearConversation}
+                className="rounded-xl bg-destructive text-destructive-foreground hover:bg-destructive/90"
               >
-                <RotateCcw className="w-3.5 h-3.5" />
-                <span>New conversation</span>
-              </motion.button>
-            )}
-          </AnimatePresence>
+                Clear conversation
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
 
-          <AlertDialog open={showClearDialog} onOpenChange={setShowClearDialog}>
-            <AlertDialogContent className="max-w-sm rounded-2xl">
-              <AlertDialogHeader>
-                <AlertDialogTitle className="font-serif">Start fresh?</AlertDialogTitle>
-                <AlertDialogDescription className="text-muted-foreground">
-                  This will clear your conversation history. Your patterns and insights will remain.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter className="gap-2 sm:gap-0">
-                <AlertDialogCancel className="rounded-xl">Keep talking</AlertDialogCancel>
-                <AlertDialogAction
-                  onClick={handleClearConversation}
-                  className="rounded-xl bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                >
-                  Clear conversation
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-
-          <h3 className="text-sm font-medium text-muted-foreground mb-4">Gentle prompts</h3>
-          <div className="flex lg:flex-col gap-2 overflow-x-auto lg:overflow-x-visible pb-2 lg:pb-0">
-            {dynamicPrompts.map((prompt, index) => {
-              const IconComponent = ICON_MAP[prompt.icon];
-              return (
-                <motion.button
-                  key={prompt.label}
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.05 }}
-                  onClick={() => handlePromptClick(prompt.label)}
-                  disabled={isDisabled || isLoading}
-                  className={`flex items-center gap-3 px-4 py-3 bg-card rounded-xl transition-all whitespace-nowrap lg:whitespace-normal text-left group ${
-                    isDisabled || isLoading 
-                      ? "opacity-50 cursor-not-allowed" 
-                      : "hover:shadow-soft cursor-pointer"
-                  }`}
-                >
-                  <div className={`w-8 h-8 rounded-lg bg-lilac-100 flex items-center justify-center transition-colors shrink-0 ${
-                    !isDisabled && !isLoading ? "group-hover:bg-lilac-200" : ""
-                  }`}>
-                    <IconComponent className="w-4 h-4 text-lilac-600" />
-                  </div>
-                  <span className="text-sm text-foreground">{prompt.label}</span>
-                </motion.button>
-              );
-            })}
-          </div>
-          
-          <AnimatePresence>
-            {isDisabled && (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="mt-4 p-3 bg-lilac-50 rounded-xl border border-lilac-200"
-              >
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Lock className="w-4 h-4 text-lilac-500" />
-                  <span>Sign up or log in to continue chatting with MEND.</span>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </aside>
-
-        {/* Main Chat Area */}
+        {/* Main Chat Area — fully centered */}
         <div className="flex-1 flex flex-col min-h-0">
-          <div ref={scrollContainerRef} onScroll={handleScroll} className="flex-1 p-6 lg:p-8 overflow-y-auto relative">
+          <div ref={scrollContainerRef} onScroll={handleScroll} className="flex-1 px-4 py-6 lg:px-8 lg:py-10 overflow-y-auto relative">
             {isFetchingHistory ? (
               <div className="h-full flex flex-col items-center justify-center">
                 <div className="flex gap-1.5">
@@ -472,7 +408,7 @@ export default function AICompanion() {
                 <p className="text-sm text-muted-foreground mt-3">Loading your conversations...</p>
               </div>
             ) : messages.length === 0 ? (
-              <div className="h-full flex flex-col items-center justify-center text-center max-w-md mx-auto">
+              <div className="h-full flex flex-col items-center justify-center text-center max-w-lg mx-auto">
                 <motion.div
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
@@ -515,7 +451,7 @@ export default function AICompanion() {
                 </motion.div>
               </div>
             ) : (
-              <div className="max-w-2xl mx-auto space-y-4">
+              <div className="max-w-[720px] mx-auto space-y-6">
                 <AnimatePresence mode="popLayout">
                   {messages.map((msg) => (
                     <div key={msg.id}>
@@ -652,22 +588,56 @@ export default function AICompanion() {
             </AnimatePresence>
           </div>
 
-          {/* Safety Disclaimer */}
-          <div className="px-6 pb-2">
-            <p className="text-xs text-muted-foreground text-center">
-              MEND provides emotional support, not medical advice. If you're in crisis, please contact a mental health professional or helpline.
-            </p>
-          </div>
-
-          {/* Message Input */}
-          <div className="p-4 lg:p-6 border-t border-border bg-card/50">
-            <div className="max-w-3xl mx-auto">
-              {/* Mode selector */}
-              {isAuthenticated && (
-                <div className="mb-3">
-                  <ModeSelector mode={mode} onModeChange={setMode} />
+          {/* Message Input Area */}
+          <div className="p-4 lg:p-6 border-t border-border/50 bg-card/30">
+            <div className="max-w-[720px] mx-auto">
+              {/* Gentle Prompts — horizontal chips */}
+              {!isDisabled && (
+                <div className="mb-4">
+                  <p className="text-xs text-muted-foreground/70 mb-2.5">Not sure where to begin?</p>
+                  <div className="flex gap-3 overflow-x-auto pb-1 scrollbar-hide">
+                    {dynamicPrompts.map((prompt, index) => {
+                      const IconComponent = ICON_MAP[prompt.icon];
+                      return (
+                        <motion.button
+                          key={prompt.label}
+                          initial={{ opacity: 0, y: 6 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: index * 0.04 }}
+                          onClick={() => handlePromptClick(prompt.label)}
+                          disabled={isLoading}
+                          className="flex items-center gap-2 px-4 py-2.5 bg-muted/60 hover:bg-muted rounded-full whitespace-nowrap text-xs text-muted-foreground hover:text-foreground transition-all hover:-translate-y-0.5 hover:shadow-sm shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          <IconComponent className="w-3.5 h-3.5 text-lilac-400" />
+                          <span>{prompt.label}</span>
+                        </motion.button>
+                      );
+                    })}
+                  </div>
                 </div>
               )}
+
+              {/* New conversation + Mode selector row */}
+              <div className="flex items-center justify-between mb-3">
+                {isAuthenticated && (
+                  <ModeSelector mode={mode} onModeChange={setMode} />
+                )}
+                <AnimatePresence>
+                  {messages.length > 0 && (
+                    <motion.button
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      onClick={() => setShowClearDialog(true)}
+                      disabled={isLoading}
+                      className="flex items-center gap-1.5 text-xs text-muted-foreground/60 hover:text-muted-foreground transition-colors ml-auto disabled:opacity-50"
+                    >
+                      <RotateCcw className="w-3 h-3" />
+                      <span>New</span>
+                    </motion.button>
+                  )}
+                </AnimatePresence>
+              </div>
 
               <div className="flex items-end gap-3">
                 <div className="flex-1 relative">
@@ -693,6 +663,10 @@ export default function AICompanion() {
                 </Button>
               </div>
               
+              <p className="text-[10px] text-muted-foreground/50 text-center mt-2">
+                MEND provides emotional support, not medical advice.
+              </p>
+
               <AnimatePresence>
                 {isDisabled && (
                   <motion.p
