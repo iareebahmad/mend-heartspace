@@ -58,7 +58,7 @@ export async function streamChat({
 
   if (!resp.body) {
     onError?.("Failed to start stream");
-    onDone({ communicationBucket });
+    onDone({ communicationBucket, formulationStyle, questionType });
     return;
   }
 
