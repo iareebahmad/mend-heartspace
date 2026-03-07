@@ -419,6 +419,8 @@ No explanations.
 No labels.
 No JSON.
 No meta commentary.`;
+
+  return { prompt, formulationStyle, questionType };
 }
 
 /* ── Pass C: Memory extraction prompt ── */
