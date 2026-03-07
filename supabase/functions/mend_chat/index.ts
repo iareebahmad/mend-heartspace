@@ -701,7 +701,7 @@ serve(async (req) => {
     console.log("[mend_chat] Pass A draft generated, length:", draftResponse.length);
 
     // ── Pass B: Premium rewrite (streaming) ──
-    const rewritePrompt = buildRewritePrompt(mode, bucket);
+    const { prompt: rewritePrompt, formulationStyle, questionType } = buildRewritePrompt(mode, bucket, last_formulation_style, last_question_type);
     const rewriteMessages = [
       ...messages,
       { role: "assistant", content: draftResponse },
