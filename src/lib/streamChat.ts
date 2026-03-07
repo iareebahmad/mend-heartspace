@@ -4,6 +4,8 @@ const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/mend_chat`;
 
 export interface StreamChatResult {
   communicationBucket: string | null;
+  formulationStyle: string | null;
+  questionType: string | null;
 }
 
 export async function streamChat({
