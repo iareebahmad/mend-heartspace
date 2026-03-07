@@ -645,7 +645,7 @@ serve(async (req) => {
   }
 
   try {
-    const { messages, companion_mode, user_state, memory_moment } = await req.json();
+    const { messages, companion_mode, user_state, memory_moment, last_formulation_style, last_question_type } = await req.json();
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
