@@ -295,6 +295,8 @@ export default function AICompanion() {
         },
         onDone: async (result) => {
           console.log("[MEND turn]", { experience_mode: mode, communication_bucket: result.communicationBucket });
+          if (result.formulationStyle) setLastFormulationStyle(result.formulationStyle);
+          if (result.questionType) setLastQuestionType(result.questionType);
 
           const { data: assistantMsgData, error: assistantMsgError } = await supabase
             .from("mend_messages")
