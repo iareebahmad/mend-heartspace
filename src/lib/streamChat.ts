@@ -52,7 +52,7 @@ export async function streamChat({
   if (!resp.ok) {
     const errorData = await resp.json().catch(() => ({ error: "Connection failed" }));
     onError?.(errorData.error || "Something went wrong");
-    onDone({ communicationBucket });
+    onDone({ communicationBucket, formulationStyle, questionType });
     return;
   }
 
