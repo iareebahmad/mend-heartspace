@@ -542,7 +542,7 @@ export function BrainVisualization({
           );
         })}
 
-        {/* Hover tooltip — refined */}
+        {/* Hover tooltip — refined typography */}
         {hoveredNode !== null && !selectedNode && !isEmpty && (() => {
           const node = nodeMap.get(hoveredNode);
           if (!node) return null;
@@ -563,30 +563,46 @@ export function BrainVisualization({
 
           const lines = [line1, line2, line3, line4].filter(Boolean);
           const maxLineLen = Math.max(...lines.map((l) => l.length));
-          const labelWidth = Math.max(maxLineLen * 0.95 + 4, 16);
-          const titleLineH = 3.2;
-          const bodyLineH = 2.8;
-          const padding = 3;
-          const boxHeight = titleLineH + (lines.length - 1) * bodyLineH + padding;
-          const tooltipY = node.y - node.size * 2 - boxHeight - 1.5;
+          const labelWidth = Math.max(maxLineLen * 1.0 + 5, 18);
+          const titleLineH = 3.6;
+          const bodyLineH = 3.0;
+          const paddingTop = 2.8;
+          const paddingBottom = 2.0;
+          const boxHeight = paddingTop + titleLineH + (lines.length - 1) * bodyLineH + paddingBottom;
+          const tooltipY = node.y - node.size * 2 - boxHeight - 2;
           const clampedX = Math.max(labelWidth / 2 + 1, Math.min(99 - labelWidth / 2, node.x));
 
           return (
             <g style={{ pointerEvents: "none" }}>
+              {/* Shadow layer */}
+              <rect
+                x={clampedX - labelWidth / 2 + 0.3} y={tooltipY + 0.4}
+                width={labelWidth} height={boxHeight} rx={1.8}
+                fill="hsl(270 20% 10%)" opacity={0.18}
+              />
+              {/* Main tooltip */}
               <rect
                 x={clampedX - labelWidth / 2} y={tooltipY}
-                width={labelWidth} height={boxHeight} rx={1.4}
-                fill={tooltipColors.bg} opacity={0.94}
+                width={labelWidth} height={boxHeight} rx={1.8}
+                fill={tooltipColors.bg} opacity={0.95}
+              />
+              {/* Cluster accent line */}
+              <rect
+                x={clampedX - labelWidth / 2 + 1.2} y={tooltipY + 1.2}
+                width={0.4} height={titleLineH}
+                rx={0.2}
+                fill={clusterColors.node[node.cluster]} opacity={0.6}
               />
               {lines.map((line, li) => (
                 <text
                   key={li}
-                  x={clampedX} y={tooltipY + 2.6 + (li === 0 ? 0 : titleLineH + (li - 1) * bodyLineH)}
+                  x={clampedX} y={tooltipY + paddingTop + (li === 0 ? 0 : titleLineH + (li - 1) * bodyLineH)}
                   textAnchor="middle"
-                  fontSize={li === 0 ? "2.7" : "2.1"}
+                  fontSize={li === 0 ? "2.9" : "2.2"}
                   fontWeight={li === 0 ? "600" : "400"}
-                  fill={li === 0 ? tooltipColors.textPrimary : tooltipColors.textSecondary}
-                  fontFamily="inherit"
+                  letterSpacing={li === 0 ? "-0.02em" : "-0.01em"}
+                  fill={li === 0 ? tooltipColors.textPrimary : li === 1 ? tooltipColors.textSecondary : tooltipColors.textMuted}
+                  fontFamily={FONT_STACK}
                   style={{ textTransform: li === 0 ? "capitalize" : "none" }}
                 >
                   {line}
