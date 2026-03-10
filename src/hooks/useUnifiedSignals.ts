@@ -6,6 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import type { DateRange } from "@/components/patterns/DateRangeSelector";
+import { normalizeLabel } from "@/lib/normalizeLabel";
 
 export interface EnrichedSignal {
   id: string;
@@ -85,7 +86,7 @@ function buildGraph(signals: EnrichedSignal[]): SignalGraph {
     // Cluster 1 — Stabilizing moments: only from journal_entry
     if (s.source_type === "journal_entry") {
       if (s.stabilizer) {
-        const st = s.stabilizer.toLowerCase().trim();
+        const st = normalizeLabel(s.stabilizer);
         stabilizerFreq.set(st, (stabilizerFreq.get(st) || 0) + 1);
       }
       // Journal emotions also feed as stabilizing reflections
@@ -98,23 +99,24 @@ function buildGraph(signals: EnrichedSignal[]): SignalGraph {
 
     // Cluster 2 — Context signals: from ALL sources
     const ctx = s.context?.toLowerCase().trim();
-    if (ctx && ctx !== "other") {
-      contextFreq.set(ctx, (contextFreq.get(ctx) || 0) + 1);
+    const normalizedCtx = ctx ? normalizeLabel(ctx) : null;
+    if (normalizedCtx && normalizedCtx !== "other") {
+      contextFreq.set(normalizedCtx, (contextFreq.get(normalizedCtx) || 0) + 1);
     }
     if (s.theme) {
-      const t = s.theme.toLowerCase().trim();
+      const t = normalizeLabel(s.theme);
       contextFreq.set(t, (contextFreq.get(t) || 0) + 1);
     }
     if (s.trigger_signal) {
-      const tr = s.trigger_signal.toLowerCase().trim();
+      const tr = normalizeLabel(s.trigger_signal);
       contextFreq.set(tr, (contextFreq.get(tr) || 0) + 1);
     }
 
     // Cross-cluster co-occurrences for edges
     const emotionKey = getEmotionNodeLabel(s.primary_emotion);
-    if (ctx && ctx !== "other") addCoOccurrence(coOccurrence, `e:${emotionKey}`, `c:${ctx}`);
-    if (s.theme) addCoOccurrence(coOccurrence, `e:${emotionKey}`, `c:${s.theme.toLowerCase().trim()}`);
-    if (s.stabilizer) addCoOccurrence(coOccurrence, `e:${emotionKey}`, `s:${s.stabilizer.toLowerCase().trim()}`);
+    if (normalizedCtx && normalizedCtx !== "other") addCoOccurrence(coOccurrence, `e:${emotionKey}`, `c:${normalizedCtx}`);
+    if (s.theme) addCoOccurrence(coOccurrence, `e:${emotionKey}`, `c:${normalizeLabel(s.theme)}`);
+    if (s.stabilizer) addCoOccurrence(coOccurrence, `e:${emotionKey}`, `s:${normalizeLabel(s.stabilizer)}`);
   }
 
   // Build nodes with normalized weights
