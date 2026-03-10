@@ -86,7 +86,7 @@ function buildGraph(signals: EnrichedSignal[]): SignalGraph {
     // Cluster 1 — Stabilizing moments: only from journal_entry
     if (s.source_type === "journal_entry") {
       if (s.stabilizer) {
-        const st = s.stabilizer.toLowerCase().trim();
+        const st = normalizeLabel(s.stabilizer);
         stabilizerFreq.set(st, (stabilizerFreq.get(st) || 0) + 1);
       }
       // Journal emotions also feed as stabilizing reflections
