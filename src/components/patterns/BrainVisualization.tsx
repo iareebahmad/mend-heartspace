@@ -137,13 +137,29 @@ const clusterColors = {
   edgeCross: "hsl(250 10% 86%)",
 };
 
-/* Tooltip palette – deep lavender gray */
+/* Tooltip & label palette – deep lavender gray */
 const tooltipColors = {
-  bg: "#2F2B36",
-  textPrimary: "#F3F1F7",
-  textSecondary: "#CFC8D9",
-  textMuted: "#A9A0B8",
+  bg: "hsl(270 14% 18%)",       /* #2F2B36 equivalent */
+  textPrimary: "hsl(265 30% 96%)",   /* #F3F1F7 */
+  textSecondary: "hsl(268 18% 80%)", /* #CFC8D9 */
+  textMuted: "hsl(268 14% 67%)",     /* #A9A0B8 */
 };
+
+/* Per-cluster label colors – soft lavender neutrals */
+const labelColors = {
+  active: [
+    "hsl(270 30% 62%)",   /* Emotional – muted lavender */
+    "hsl(162 30% 56%)",   /* Stabilizing – gentle mint */
+    "hsl(255 12% 58%)",   /* Context – soft gray-lavender */
+  ],
+  dimmed: [
+    "hsl(270 16% 72%)",
+    "hsl(162 16% 72%)",
+    "hsl(255 8% 72%)",
+  ],
+};
+
+const FONT_STACK = "'DM Sans', 'Inter', system-ui, sans-serif";
 
 const clusterNames = ["Emotional state", "Stabilizing moment", "Context signal"];
 
@@ -501,31 +517,32 @@ export function BrainVisualization({
           const dimmed = pathActive && !connectedNodeIds?.has(node.id);
           const isHovered = hoveredNode === node.id;
           const isSelected = selectedNode === node.id;
-          // Hide persistent label when tooltip is showing for this node
           if (isHovered || isSelected) return null;
+          const isDominant = node.weight >= 0.85;
           return (
             <text
               key={`label-${node.id}`}
               x={node.x}
               y={node.y + node.size * 2.2 + 2.5}
               textAnchor="middle"
-              fontSize="1.8"
+              fontSize={isDominant ? "2.2" : "1.8"}
               fontWeight="500"
-              fill={dimmed ? "hsl(250 10% 70%)" : "hsl(250 12% 58%)"}
-              opacity={dimmed ? 0.2 : 0.55}
+              letterSpacing="-0.02em"
+              fill={dimmed ? labelColors.dimmed[node.cluster] : labelColors.active[node.cluster]}
+              opacity={dimmed ? 0.18 : 0.6}
               style={{
                 pointerEvents: "none",
                 transition: `opacity ${HOVER_TRANSITION} ease, fill ${HOVER_TRANSITION} ease`,
                 textTransform: "capitalize",
               }}
-              fontFamily="inherit"
+              fontFamily={FONT_STACK}
             >
               {node.label}
             </text>
           );
         })}
 
-        {/* Hover tooltip — refined */}
+        {/* Hover tooltip — refined typography */}
         {hoveredNode !== null && !selectedNode && !isEmpty && (() => {
           const node = nodeMap.get(hoveredNode);
           if (!node) return null;
@@ -546,30 +563,46 @@ export function BrainVisualization({
 
           const lines = [line1, line2, line3, line4].filter(Boolean);
           const maxLineLen = Math.max(...lines.map((l) => l.length));
-          const labelWidth = Math.max(maxLineLen * 0.95 + 4, 16);
-          const titleLineH = 3.2;
-          const bodyLineH = 2.8;
-          const padding = 3;
-          const boxHeight = titleLineH + (lines.length - 1) * bodyLineH + padding;
-          const tooltipY = node.y - node.size * 2 - boxHeight - 1.5;
+          const labelWidth = Math.max(maxLineLen * 1.0 + 5, 18);
+          const titleLineH = 3.6;
+          const bodyLineH = 3.0;
+          const paddingTop = 2.8;
+          const paddingBottom = 2.0;
+          const boxHeight = paddingTop + titleLineH + (lines.length - 1) * bodyLineH + paddingBottom;
+          const tooltipY = node.y - node.size * 2 - boxHeight - 2;
           const clampedX = Math.max(labelWidth / 2 + 1, Math.min(99 - labelWidth / 2, node.x));
 
           return (
             <g style={{ pointerEvents: "none" }}>
+              {/* Shadow layer */}
+              <rect
+                x={clampedX - labelWidth / 2 + 0.3} y={tooltipY + 0.4}
+                width={labelWidth} height={boxHeight} rx={1.8}
+                fill="hsl(270 20% 10%)" opacity={0.18}
+              />
+              {/* Main tooltip */}
               <rect
                 x={clampedX - labelWidth / 2} y={tooltipY}
-                width={labelWidth} height={boxHeight} rx={1.4}
-                fill={tooltipColors.bg} opacity={0.94}
+                width={labelWidth} height={boxHeight} rx={1.8}
+                fill={tooltipColors.bg} opacity={0.95}
+              />
+              {/* Cluster accent line */}
+              <rect
+                x={clampedX - labelWidth / 2 + 1.2} y={tooltipY + 1.2}
+                width={0.4} height={titleLineH}
+                rx={0.2}
+                fill={clusterColors.node[node.cluster]} opacity={0.6}
               />
               {lines.map((line, li) => (
                 <text
                   key={li}
-                  x={clampedX} y={tooltipY + 2.6 + (li === 0 ? 0 : titleLineH + (li - 1) * bodyLineH)}
+                  x={clampedX} y={tooltipY + paddingTop + (li === 0 ? 0 : titleLineH + (li - 1) * bodyLineH)}
                   textAnchor="middle"
-                  fontSize={li === 0 ? "2.7" : "2.1"}
+                  fontSize={li === 0 ? "2.9" : "2.2"}
                   fontWeight={li === 0 ? "600" : "400"}
-                  fill={li === 0 ? tooltipColors.textPrimary : tooltipColors.textSecondary}
-                  fontFamily="inherit"
+                  letterSpacing={li === 0 ? "-0.02em" : "-0.01em"}
+                  fill={li === 0 ? tooltipColors.textPrimary : li === 1 ? tooltipColors.textSecondary : tooltipColors.textMuted}
+                  fontFamily={FONT_STACK}
                   style={{ textTransform: li === 0 ? "capitalize" : "none" }}
                 >
                   {line}
@@ -627,32 +660,51 @@ function InsightPanel({
       style={{ left, top, width: panelWidth }}
       onClick={(e) => e.stopPropagation()}
     >
-      <div className="rounded-xl bg-card border border-border/40 shadow-hover p-4 backdrop-blur-sm">
-        <div className="flex items-center justify-between mb-2.5">
+      <div
+        className="rounded-[14px] border border-border/30 shadow-lg p-5 backdrop-blur-sm"
+        style={{ background: "hsl(270 14% 18% / 0.97)" }}
+      >
+        <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full" style={{ background: dotColor }} />
-            <span className="text-[10px] font-medium text-muted-foreground/70 uppercase tracking-wider">
+            <span
+              className="text-[10px] font-medium uppercase tracking-wider"
+              style={{ color: tooltipColors.textMuted, fontFamily: FONT_STACK }}
+            >
               {clusterLabel}
             </span>
           </div>
           <button
             onClick={onClose}
-            className="text-muted-foreground/40 hover:text-muted-foreground text-xs leading-none transition-colors"
+            className="text-xs leading-none transition-colors"
+            style={{ color: tooltipColors.textMuted }}
             aria-label="Close insight"
           >
             ✕
           </button>
         </div>
-        <p className="text-[16px] font-serif font-semibold text-foreground mb-2 capitalize">
+        <p
+          className="mb-2.5 capitalize"
+          style={{ fontSize: 17, fontWeight: 600, letterSpacing: "-0.02em", color: tooltipColors.textPrimary, fontFamily: FONT_STACK }}
+        >
           {node.label}
         </p>
-        <p className="text-[13px] text-foreground/70 leading-relaxed mb-2">
+        <p
+          className="leading-relaxed mb-2"
+          style={{ fontSize: 13, color: tooltipColors.textSecondary, fontFamily: FONT_STACK }}
+        >
           {insight.chain}
         </p>
-        <p className="text-[12px] text-muted-foreground/60 leading-snug mb-2">
+        <p
+          className="leading-snug mb-2.5"
+          style={{ fontSize: 12, color: tooltipColors.textMuted, fontFamily: FONT_STACK }}
+        >
           {insight.explanation}
         </p>
-        <p className="text-[10px] text-muted-foreground/45 italic">
+        <p
+          className="italic"
+          style={{ fontSize: 10, color: "hsl(268 12% 52%)", fontFamily: FONT_STACK }}
+        >
           Observed {insight.count} times in the last 30 days
         </p>
       </div>
