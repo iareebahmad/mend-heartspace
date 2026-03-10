@@ -6,6 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import type { DateRange } from "@/components/patterns/DateRangeSelector";
+import { normalizeLabel } from "@/lib/normalizeLabel";
 
 export interface EnrichedSignal {
   id: string;
