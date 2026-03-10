@@ -131,9 +131,6 @@ export function BrainVisualization({
   const { nodes, edges } = useMemo(() => generateGraph(nodeCount), [nodeCount]);
   const pulse = pulseConfig[baselineState];
   const [hoveredNode, setHoveredNode] = useState<number | null>(null);
-  const nodeCount = isEmpty ? 15 : 48;
-  const { nodes, edges } = useMemo(() => generateGraph(nodeCount), [nodeCount]);
-  const pulse = pulseConfig[baselineState];
 
   const [tick, setTick] = useState(0);
   useEffect(() => {
