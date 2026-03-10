@@ -225,6 +225,30 @@ function GraphLegend() {
   );
 }
 
+/* ── Dynamic interpretation builder ─────────────── */
+function buildInterpretation(info: HoveredNodeInfo): string {
+  const { label, cluster, connectedLabels, stabilizer } = info;
+  const name = label.charAt(0).toUpperCase() + label.slice(1);
+
+  if (connectedLabels.length === 0) {
+    return `${name} has appeared on its own — MEND is still listening for connections.`;
+  }
+
+  const companions = connectedLabels.slice(0, 3).join(" and ");
+
+  if (cluster === 0) {
+    // Emotional state
+    const base = `${name} often appears alongside ${companions}.`;
+    return stabilizer ? `${base} ${stabilizer.charAt(0).toUpperCase() + stabilizer.slice(1)} seems to help settle it.` : base;
+  }
+  if (cluster === 1) {
+    // Stabilizer
+    return `${name} tends to surface after emotionally tense moments, often near ${companions}.`;
+  }
+  // Context
+  return `${name} is a recurring theme, frequently linked to ${companions}.`;
+}
+
 /* ── Page ─────────────────────────────────────────── */
 export default function PatternsInsights() {
   const { data, isLoading } = usePatternSignals();
