@@ -517,24 +517,25 @@ export function BrainVisualization({
           const dimmed = pathActive && !connectedNodeIds?.has(node.id);
           const isHovered = hoveredNode === node.id;
           const isSelected = selectedNode === node.id;
-          // Hide persistent label when tooltip is showing for this node
           if (isHovered || isSelected) return null;
+          const isDominant = node.weight >= 0.85;
           return (
             <text
               key={`label-${node.id}`}
               x={node.x}
               y={node.y + node.size * 2.2 + 2.5}
               textAnchor="middle"
-              fontSize="1.8"
+              fontSize={isDominant ? "2.2" : "1.8"}
               fontWeight="500"
-              fill={dimmed ? "hsl(250 10% 70%)" : "hsl(250 12% 58%)"}
-              opacity={dimmed ? 0.2 : 0.55}
+              letterSpacing="-0.02em"
+              fill={dimmed ? labelColors.dimmed[node.cluster] : labelColors.active[node.cluster]}
+              opacity={dimmed ? 0.18 : 0.6}
               style={{
                 pointerEvents: "none",
                 transition: `opacity ${HOVER_TRANSITION} ease, fill ${HOVER_TRANSITION} ease`,
                 textTransform: "capitalize",
               }}
-              fontFamily="inherit"
+              fontFamily={FONT_STACK}
             >
               {node.label}
             </text>
