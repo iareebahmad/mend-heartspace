@@ -660,32 +660,51 @@ function InsightPanel({
       style={{ left, top, width: panelWidth }}
       onClick={(e) => e.stopPropagation()}
     >
-      <div className="rounded-xl bg-card border border-border/40 shadow-hover p-4 backdrop-blur-sm">
-        <div className="flex items-center justify-between mb-2.5">
+      <div
+        className="rounded-[14px] border border-border/30 shadow-lg p-5 backdrop-blur-sm"
+        style={{ background: "hsl(270 14% 18% / 0.97)" }}
+      >
+        <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full" style={{ background: dotColor }} />
-            <span className="text-[10px] font-medium text-muted-foreground/70 uppercase tracking-wider">
+            <span
+              className="text-[10px] font-medium uppercase tracking-wider"
+              style={{ color: tooltipColors.textMuted, fontFamily: FONT_STACK }}
+            >
               {clusterLabel}
             </span>
           </div>
           <button
             onClick={onClose}
-            className="text-muted-foreground/40 hover:text-muted-foreground text-xs leading-none transition-colors"
+            className="text-xs leading-none transition-colors"
+            style={{ color: tooltipColors.textMuted }}
             aria-label="Close insight"
           >
             ✕
           </button>
         </div>
-        <p className="text-[16px] font-serif font-semibold text-foreground mb-2 capitalize">
+        <p
+          className="mb-2.5 capitalize"
+          style={{ fontSize: 17, fontWeight: 600, letterSpacing: "-0.02em", color: tooltipColors.textPrimary, fontFamily: FONT_STACK }}
+        >
           {node.label}
         </p>
-        <p className="text-[13px] text-foreground/70 leading-relaxed mb-2">
+        <p
+          className="leading-relaxed mb-2"
+          style={{ fontSize: 13, color: tooltipColors.textSecondary, fontFamily: FONT_STACK }}
+        >
           {insight.chain}
         </p>
-        <p className="text-[12px] text-muted-foreground/60 leading-snug mb-2">
+        <p
+          className="leading-snug mb-2.5"
+          style={{ fontSize: 12, color: tooltipColors.textMuted, fontFamily: FONT_STACK }}
+        >
           {insight.explanation}
         </p>
-        <p className="text-[10px] text-muted-foreground/45 italic">
+        <p
+          className="italic"
+          style={{ fontSize: 10, color: "hsl(268 12% 52%)", fontFamily: FONT_STACK }}
+        >
           Observed {insight.count} times in the last 30 days
         </p>
       </div>
