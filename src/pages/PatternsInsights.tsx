@@ -12,7 +12,7 @@ import { MoodTimeline } from "@/components/patterns/MoodTimeline";
 import { BrainVisualization } from "@/components/patterns/BrainVisualization";
 import { InsightCards } from "@/components/patterns/InsightCards";
 import { DateRangeSelector, type DateRange } from "@/components/patterns/DateRangeSelector";
-import { computePatternSnapshot, type PatternSnapshot } from "@/lib/patternSnapshot";
+import { computePatternSnapshot, clearSnapshotCache, type PatternSnapshot } from "@/lib/patternSnapshot";
 import { useAuth } from "@/hooks/useAuth";
 
 const patternIcons: Record<string, typeof Heart> = {
