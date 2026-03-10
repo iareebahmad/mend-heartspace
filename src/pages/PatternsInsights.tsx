@@ -332,11 +332,37 @@ export default function PatternsInsights() {
                       highlightCluster={0}
                       graphNodes={signalGraph?.nodes}
                       graphEdges={signalGraph?.edges}
+                      onHoverNode={setHoveredInfo}
                     />
                     <GraphLegend />
-                    <p className="text-center text-[11px] text-muted-foreground/40 mt-3 tracking-wide">
-                      Reflecting your recent emotional rhythm
-                    </p>
+                    {/* Dynamic interpretation sentence */}
+                    <div className="h-8 mt-3 flex items-center justify-center">
+                      <AnimatePresence mode="wait">
+                        {hoveredInfo ? (
+                          <motion.p
+                            key={hoveredInfo.label}
+                            initial={{ opacity: 0, y: 4 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -4 }}
+                            transition={{ duration: 0.25, ease: "easeOut" }}
+                            className="text-center text-[12px] text-muted-foreground/65 italic leading-snug"
+                          >
+                            {buildInterpretation(hoveredInfo)}
+                          </motion.p>
+                        ) : (
+                          <motion.p
+                            key="default"
+                            initial={{ opacity: 0, y: 4 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -4 }}
+                            transition={{ duration: 0.25, ease: "easeOut" }}
+                            className="text-center text-[11px] text-muted-foreground/40 tracking-wide"
+                          >
+                            Reflecting your recent emotional rhythm
+                          </motion.p>
+                        )}
+                      </AnimatePresence>
+                    </div>
                   </div>
                 </motion.section>
               )}
