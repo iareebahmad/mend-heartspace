@@ -235,11 +235,11 @@ export default function PatternsInsights() {
   useEffect(() => {
     if (!user?.id) return;
     setSnapshotLoading(true);
-    computePatternSnapshot(user.id)
+    computePatternSnapshot(user.id, dateRange)
       .then(setSnapshot)
       .catch(() => {})
       .finally(() => setSnapshotLoading(false));
-  }, [user?.id, data?.signals]);
+  }, [user?.id, data?.signals, dateRange]);
 
   const emptyHeading = getPatternsEmptyHeading(phase);
   const emptyBody = getPatternsEmptyBody(phase);
