@@ -99,15 +99,16 @@ function buildGraph(signals: EnrichedSignal[]): SignalGraph {
 
     // Cluster 2 — Context signals: from ALL sources
     const ctx = s.context?.toLowerCase().trim();
-    if (ctx && ctx !== "other") {
-      contextFreq.set(ctx, (contextFreq.get(ctx) || 0) + 1);
+    const normalizedCtx = ctx ? normalizeLabel(ctx) : null;
+    if (normalizedCtx && normalizedCtx !== "other") {
+      contextFreq.set(normalizedCtx, (contextFreq.get(normalizedCtx) || 0) + 1);
     }
     if (s.theme) {
-      const t = s.theme.toLowerCase().trim();
+      const t = normalizeLabel(s.theme);
       contextFreq.set(t, (contextFreq.get(t) || 0) + 1);
     }
     if (s.trigger_signal) {
-      const tr = s.trigger_signal.toLowerCase().trim();
+      const tr = normalizeLabel(s.trigger_signal);
       contextFreq.set(tr, (contextFreq.get(tr) || 0) + 1);
     }
 
