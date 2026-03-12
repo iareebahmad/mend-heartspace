@@ -165,8 +165,8 @@ export default function Home() {
       {/* ─── SECTION 1 — Hero ─── */}
       <section className="relative min-h-[85vh] flex items-center overflow-hidden gradient-hero">
         {/* Background neural cluster */}
-        <div className="absolute inset-0 pointer-events-none opacity-30">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] md:w-[700px] md:h-[700px]">
+        <div className="absolute inset-0 pointer-events-none opacity-40">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90vw] h-[85vh] max-w-[1100px] max-h-[800px]">
             <NeuralCluster />
           </div>
         </div>
