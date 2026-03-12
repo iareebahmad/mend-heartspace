@@ -49,12 +49,14 @@ const steps = [
   },
 ];
 
+const easeOutCubic: [number, number, number, number] = [0.33, 1, 0.68, 1];
+
 const textVariants = {
   hidden: { opacity: 0, y: 20 },
   visible: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.6, ease: [0.33, 1, 0.68, 1] },
+    transition: { duration: 0.6, ease: easeOutCubic },
   },
 };
 
@@ -64,7 +66,7 @@ const imageVariants = {
     opacity: 1,
     y: 0,
     scale: 1,
-    transition: { duration: 0.6, ease: [0.33, 1, 0.68, 1], delay: 0.1 },
+    transition: { duration: 0.6, ease: easeOutCubic, delay: 0.1 },
   },
 };
 
