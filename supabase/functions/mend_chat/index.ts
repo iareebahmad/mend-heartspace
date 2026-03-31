@@ -47,10 +47,10 @@ function detectCrisis(text: string): boolean {
 }
 
 function classifyBucket(userText: string, mode: string): string {
-  const trimmed = userText.trim();
-  if (detectCrisis(trimmed)) return "Crisis";
-  const lower = trimmed.toLowerCase();
-  const wordCount = trimmed.split(/\s+/).filter(Boolean).length;
+  if (detectCrisis(userText)) return "Crisis";
+
+  const lower = userText.toLowerCase();
+
   const smallTalkPatterns = [
     /^(hi|hello|hey|hiya|howdy|sup|yo)/i,
     /^(how are you|how's it going|what's up)/i,
@@ -58,10 +58,11 @@ function classifyBucket(userText: string, mode: string): string {
     /^(thanks|thank you|bye|goodbye|cya)/i,
     /^(good|fine|ok|okay|not bad|great)/i,
   ];
-  // This is the clean check for Small Talk
-  if (wordCount <= 8 && smallTalkPatterns.some((p) => p.test(lower))) {
+
+  if (userText.split(" ").length <= 8 && smallTalkPatterns.some((p) => p.test(lower))) {
     return "Small Talk";
   }
+
   const allowed = MODE_BUCKETS[mode] || MODE_BUCKETS["Reflect with me"];
 
   const signals: Record<string, number> = {};
