@@ -47,10 +47,10 @@ function detectCrisis(text: string): boolean {
 }
 
 function classifyBucket(userText: string, mode: string): string {
-  if (detectCrisis(userText)) return "Crisis";
-
-  const lower = userText.toLowerCase();
-
+  const trimmed = userText.trim();
+  if (detectCrisis(trimmed)) return "Crisis";
+  const lower = trimmed.toLowerCase();
+  const wordCount = trimmed.split(/\s+/).filter(Boolean).length;
   const smallTalkPatterns = [
     /^(hi|hello|hey|hiya|howdy|sup|yo)/i,
     /^(how are you|how's it going|what's up)/i,
@@ -58,11 +58,10 @@ function classifyBucket(userText: string, mode: string): string {
     /^(thanks|thank you|bye|goodbye|cya)/i,
     /^(good|fine|ok|okay|not bad|great)/i,
   ];
-
-  if (userText.split(" ").length <= 8 && smallTalkPatterns.some((p) => p.test(lower))) {
+  // This is the clean check for Small Talk
+  if (wordCount <= 8 && smallTalkPatterns.some((p) => p.test(lower))) {
     return "Small Talk";
   }
-
   const allowed = MODE_BUCKETS[mode] || MODE_BUCKETS["Reflect with me"];
 
   const signals: Record<string, number> = {};
@@ -443,7 +442,7 @@ Response rules:
 The final output must be the rewritten response only.
 No explanations or labels.`,
       formulationStyle: "casual",
-      questionType: "casual"
+      questionType: "casual",
     };
   }
 
@@ -466,16 +465,17 @@ PREVIOUS_STYLE: ${prevFormulationStyle || "none"}
 
 Do not reuse the previous style.
 
-${noQuestionMode
-      ? ""
-      : `The assigned question type is:
+${
+  noQuestionMode
+    ? ""
+    : `The assigned question type is:
 QUESTION_TYPE: ${questionType}
 
 The previous question type was:
 PREVIOUS_QUESTION_TYPE: ${prevQuestionType || "none"}
 
 Do not reuse the previous question type.`
-    }
+}
 
 Response rules:
 1. Maximum 120 words.
@@ -509,8 +509,9 @@ Describe what you are noticing with steady, grounded language.
 gentle_hypothesis:
 Offer a soft interpretation using uncertain language once, not repeatedly.
 
-${!noQuestionMode
-      ? `Question type guidance:
+${
+  !noQuestionMode
+    ? `Question type guidance:
 
 somatic:
 Ask about physical sensation in the body.
@@ -529,8 +530,8 @@ Ask how they interpret the other person's behavior.
 
 future:
 Ask what would feel different next time.`
-      : ""
-    }
+    : ""
+}
 
 ${bucket === "Crisis" ? "CRISIS: YOU MUST include the Indian Suicide Hotline at 9152987821. DO NOT mention 988. Gently acknowledge what they shared. Brief and warm." : ""}
 
