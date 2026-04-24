@@ -266,13 +266,18 @@ const VARIATION_OPENERS = [
 ];
 
 /* ── Memory pack types ── */
+interface MemoryItem {
+  content: string;
+  count: number;
+}
+
 interface MemoryPack {
-  recurring_themes: string[];
-  triggers: string[];
-  coping_patterns: string[];
-  preferences: string[];
-  goals: string[];
-  boundaries: string[];
+  recurring_themes: MemoryItem[];
+  triggers: MemoryItem[];
+  coping_patterns: MemoryItem[];
+  preferences: MemoryItem[];
+  goals: MemoryItem[];
+  boundaries: MemoryItem[];
   recent_trend: string;
 }
 
@@ -301,27 +306,28 @@ async function getMemoryPack(supabase: any, userId: string): Promise<MemoryPack 
     };
 
     for (const m of memories) {
+      const item: MemoryItem = { content: m.content, count: m.evidence_count || 1 };
       switch (m.memory_type) {
         case "recurring_theme":
-          pack.recurring_themes.push(m.content);
+          pack.recurring_themes.push(item);
           break;
         case "trigger":
-          pack.triggers.push(m.content);
+          pack.triggers.push(item);
           break;
         case "coping_pattern":
-          pack.coping_patterns.push(m.content);
+          pack.coping_patterns.push(item);
           break;
         case "preference":
-          pack.preferences.push(m.content);
+          pack.preferences.push(item);
           break;
         case "goal":
-          pack.goals.push(m.content);
+          pack.goals.push(item);
           break;
         case "boundary":
-          pack.boundaries.push(m.content);
+          pack.boundaries.push(item);
           break;
         case "relationship_context":
-          pack.recurring_themes.push(m.content);
+          pack.recurring_themes.push(item);
           break;
       }
     }
@@ -346,22 +352,32 @@ async function getMemoryPack(supabase: any, userId: string): Promise<MemoryPack 
   }
 }
 
+/* ── Format a MemoryItem array as a bullet list with mention counts ── */
+function formatItems(items: MemoryItem[]): string {
+  return items.map((t) => `- "${t.content}" (mentioned ${t.count} time${t.count === 1 ? "" : "s"})`).join("\n");
+}
+
 /* ── Format memory pack for system prompt (max ~1000 chars) ── */
 function formatMemoryContext(pack: MemoryPack): string {
   const lines: string[] = ["User Memory Context:"];
 
   if (pack.recurring_themes.length)
-    lines.push(`Recurring themes:\n${pack.recurring_themes.map((t) => `- ${t}`).join("\n")}`);
-  if (pack.triggers.length) lines.push(`Common triggers:\n${pack.triggers.map((t) => `- ${t}`).join("\n")}`);
+    lines.push(`Recurring themes:\n${formatItems(pack.recurring_themes)}`);
+  if (pack.triggers.length)
+    lines.push(`Common triggers:\n${formatItems(pack.triggers)}`);
   if (pack.coping_patterns.length)
-    lines.push(`Helpful coping:\n${pack.coping_patterns.map((t) => `- ${t}`).join("\n")}`);
-  if (pack.goals.length) lines.push(`Goals:\n${pack.goals.map((t) => `- ${t}`).join("\n")}`);
-  if (pack.boundaries.length) lines.push(`Boundaries:\n${pack.boundaries.map((t) => `- ${t}`).join("\n")}`);
-  if (pack.preferences.length) lines.push(`Preferences:\n${pack.preferences.map((t) => `- ${t}`).join("\n")}`);
-  if (pack.recent_trend) lines.push(`Recent trend: ${pack.recent_trend}`);
+    lines.push(`Helpful coping:\n${formatItems(pack.coping_patterns)}`);
+  if (pack.goals.length)
+    lines.push(`Goals:\n${formatItems(pack.goals)}`);
+  if (pack.boundaries.length)
+    lines.push(`Boundaries:\n${formatItems(pack.boundaries)}`);
+  if (pack.preferences.length)
+    lines.push(`Preferences:\n${formatItems(pack.preferences)}`);
+  if (pack.recent_trend)
+    lines.push(`Recent trend: ${pack.recent_trend}`);
 
   const result = lines.join("\n\n");
-  return result.slice(0, 1000);
+  return result.slice(0, 1200);
 }
 
 /* ── Pass A: Draft system prompt ── */
@@ -435,7 +451,14 @@ Rules:
 
   let memoryContext = "";
   if (memoryPack) {
-    memoryContext = `\n\n${formatMemoryContext(memoryPack)}\n(Use memory context naturally. Do not quote it directly. Do not say "I remember" or "you mentioned before" unless evidence_count is very high.)`;
+    memoryContext = `\n\n${formatMemoryContext(memoryPack)}
+
+Memory utilization rules (follow precisely):
+- Each item above shows how many times the user has mentioned that fact across all sessions.
+- If an item was mentioned 1-2 times: acknowledge it lightly and tentatively. Use phrasing like "You mentioned once before that..." or "I recall you touched on this..."
+- If an item was mentioned 3 or more times: infer it confidently as an established preference or pattern. Use phrasing like "You seem to really like...", "Since you prefer...", or "You've mentioned a few times that..."
+- Weave memory naturally into your response. Do not list or dump memories. Do not say "According to my memory" or use clinical framing.
+- Only reference a memory item if it is genuinely relevant to what the user is saying right now.`;
   }
 
   let memoryMomentContext = "";
